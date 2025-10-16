@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Image, TouchableOpacity, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import axios from 'axios';
+import { useState } from 'react';
+import { Alert, Button, Image, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { TicketService } from '../services/ticketService';
 
 export default function CustomerScreen() {
   const [form, setForm] = useState({ name: '', email: '', description: '' });
@@ -14,54 +14,36 @@ export default function CustomerScreen() {
     if (!result.canceled) setImage(result.assets[0].uri);
   };
 
+  const showAlert = (title, message) => {
+    if (Platform.OS === "web") window.alert(`${title}\n${message}`);
+    else Alert.alert(title, message);
+  };
+
   const submitTicket = async () => {
-    if (!form.name || !form.email || !form.description || !image) {
-      Alert.alert(
-        'Required Fields Missing',
-        'Please fill in your Name, Email, Description, and attach a Photo/Attachment.'
-      );
-      return;
-    }
+    if (!form.name) return showAlert("Missing Field", "Please enter your name.");
+    if (!form.email) return showAlert("Missing Field", "Please enter your email.");
+    if (!form.description) return showAlert("Missing Field", "Please describe your issue.");
+    if (!image) return showAlert("Missing Attachment", "Please attach a photo or screenshot.");
 
     try {
-      const res = await axios.post('https://helpdesk-backend-ruby.vercel.app/api/tickets', {
-        ...form,
-        attachment: image,
-      });
-      Alert.alert('Success', `Ticket submitted! ID: ${res.data.id}`);
+      const res = await TicketService.createTicket({ ...form, attachment: image });
+      showAlert("Success", `Ticket submitted! ID: ${res.data.id}`);
       setForm({ name: '', email: '', description: '' });
       setImage(null);
     } catch (err) {
-      console.log('Error submitting ticket:', err.response?.data || err.message);
-      Alert.alert(
-        'Error submitting ticket',
-        JSON.stringify(err.response?.data || err.message, null, 2)
-      );
+      console.error('Error submitting ticket:', err.response?.data || err.message);
+      showAlert('Error submitting ticket', JSON.stringify(err.response?.data || err.message, null, 2));
     }
   };
 
   return (
     <View style={{ padding: 16 }}>
       <Text>Name *</Text>
-      <TextInput
-        style={{ borderWidth: 1, marginBottom: 8 }}
-        value={form.name}
-        onChangeText={(t) => setForm({ ...form, name: t })}
-      />
+      <TextInput style={{ borderWidth: 1, marginBottom: 8 }} value={form.name} onChangeText={(t) => setForm({ ...form, name: t })} />
       <Text>Email *</Text>
-      <TextInput
-        style={{ borderWidth: 1, marginBottom: 8 }}
-        value={form.email}
-        onChangeText={(t) => setForm({ ...form, email: t })}
-      />
+      <TextInput style={{ borderWidth: 1, marginBottom: 8 }} value={form.email} onChangeText={(t) => setForm({ ...form, email: t })} />
       <Text>Description *</Text>
-      <TextInput
-        multiline
-        numberOfLines={4}
-        style={{ borderWidth: 1, marginBottom: 8 }}
-        value={form.description}
-        onChangeText={(t) => setForm({ ...form, description: t })}
-      />
+      <TextInput multiline numberOfLines={4} style={{ borderWidth: 1, marginBottom: 8 }} value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} />
 
       <TouchableOpacity onPress={pickImage}>
         <Text style={{ color: 'blue', marginBottom: 8 }}>Attach Photo/Attachment *</Text>

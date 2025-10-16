@@ -1,20 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TextInput, 
-  KeyboardAvoidingView, 
-  Platform, 
-  Alert, 
-  TouchableOpacity, 
-  ScrollView 
-} from 'react-native';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { Alert, FlatList, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { TicketService } from '../services/ticketService';
 
-// Component for a single ticket
 const TicketItem = ({ item, updateTicket }) => {
   const [responseText, setResponseText] = useState('');
+
+  const showAlert = (title, message) => {
+    if (Platform.OS === "web") window.alert(`${title}\n${message}`);
+    else Alert.alert(title, message);
+  };
 
   return (
     <View style={{ borderWidth: 1, padding: 12, marginBottom: 16, borderRadius: 8, backgroundColor: '#fff', elevation: 2 }}>
@@ -24,7 +18,6 @@ const TicketItem = ({ item, updateTicket }) => {
       <Text style={{ marginTop: 4, fontStyle: 'italic' }}>Description: {item.description}</Text>
       <Text style={{ marginTop: 8, fontWeight: 'bold' }}>Status: {item.status}</Text>
 
-      {/* Logs */}
       {item.logs && item.logs.length > 0 && (
         <View style={{ marginTop: 8 }}>
           <Text style={{ fontWeight: 'bold', textDecorationLine: 'underline' }}>Admin Logs:</Text>
@@ -36,7 +29,6 @@ const TicketItem = ({ item, updateTicket }) => {
         </View>
       )}
 
-      {/* Add Response/Log */}
       <View style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#eee' }}>
         <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Add New Response/Log:</Text>
         <TextInput
@@ -52,7 +44,7 @@ const TicketItem = ({ item, updateTicket }) => {
               updateTicket(item.id, null, responseText);
               setResponseText('');
             } else {
-              Alert.alert('Empty Response', 'Please type a log to send.');
+              showAlert('Empty Response', 'Please type a log to send.');
             }
           }}
         >
@@ -60,7 +52,6 @@ const TicketItem = ({ item, updateTicket }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Status Update Buttons */}
       <View style={{ flexDirection: 'row', marginTop: 12, justifyContent: 'space-between' }}>
         <TouchableOpacity
           style={{ flex: 1, backgroundColor: '#FFA500', padding: 10, marginRight: 5, borderRadius: 5 }}
@@ -85,11 +76,11 @@ export default function AdminScreen() {
 
   const fetchTickets = async () => {
     try {
-      const res = await axios.get('https://helpdesk-backend-ruby.vercel.app/api/tickets');
+      const res = await TicketService.getTickets();
       setTickets(res.data);
     } catch (err) {
       console.error('Error fetching tickets:', err.response?.data || err.message);
-      Alert.alert('Error', 'Failed to fetch tickets.');
+      showAlert('Error', 'Failed to fetch tickets.');
     }
   };
 
@@ -98,12 +89,11 @@ export default function AdminScreen() {
       const payload = {};
       if (newStatus) payload.status = newStatus;
       if (newLog) payload.log = `[${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}] Admin: ${newLog}`;
-
-      await axios.patch(`https://helpdesk-backend-ruby.vercel.app/api/tickets/${id}`, payload);
+      await TicketService.updateTicket(id, payload);
       fetchTickets();
     } catch (err) {
       console.error('Error updating ticket:', err.response?.data || err.message);
-      Alert.alert('Error', 'Failed to update ticket.');
+      showAlert('Error', 'Failed to update ticket.');
     }
   };
 
@@ -112,22 +102,13 @@ export default function AdminScreen() {
   }, []);
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0} 
-    >
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>Ticket Management</Text>
         {tickets.length === 0 ? (
           <Text>No tickets available.</Text>
         ) : (
-          <FlatList
-            data={tickets}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => <TicketItem item={item} updateTicket={updateTicket} />}
-            scrollEnabled={false} // disable FlatList scroll since ScrollView wraps it
-          />
+          <FlatList data={tickets} keyExtractor={(item) => item.id.toString()} renderItem={({ item }) => <TicketItem item={item} updateTicket={updateTicket} />} scrollEnabled={false} />
         )}
 
         <TouchableOpacity

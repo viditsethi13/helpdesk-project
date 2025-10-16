@@ -51,6 +51,7 @@
       "reactCompiler": true
     },
     "extra": {
+      "API_BASE_URL": "https://helpdesk-backend-ruby.vercel.app",
       "router": {},
       "eas": {
         "projectId": "c9423ddf-dd3a-4824-9a01-76f79897ed7e"
