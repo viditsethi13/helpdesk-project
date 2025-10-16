@@ -8,7 +8,8 @@ This is a simple **Helpdesk / Support Ticket Management System** built with **No
 
 - [Features](#features)  
 - [Tech Stack](#tech-stack)  
-- [Link to download android app](#Link-to-download-android-app)    
+- [Link to download android app](#link-to-download-android-app)  
+- [Link to web app](#link-to-web-app)  
 
 ---
 
@@ -40,6 +41,14 @@ This is a simple **Helpdesk / Support Ticket Management System** built with **No
 
 
 ## Link to download android app
+
 - https://expo.dev/accounts/viditsethi13/projects/helpdesk-app/builds/1df88035-c85c-4739-89c4-1212d9b785bb
+
+---
+
+
+## Link to web app
+
+- https://helpdesk-duq9rgr7m-viditsethi13-1082s-projects.vercel.app/
 
 ---
